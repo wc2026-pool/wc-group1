@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>⚽ GROUP1 WC 2026 — Prediction Pool</title>
+  <title>GROUP1 - WC 2026 Prediction Pool</title>
   <style>
     :root {
       --bg: #f5f5f5; --card: #ffffff; --card2: #f0f0f0; --border: #e0e0e0;
@@ -87,7 +87,7 @@
     .pbar-fill { height: 100%; border-radius: 3px; background: var(--espn); }
 
     /* ── TABS ── */
-    .tabs { display: flex; border-bottom: 2px solid var(--border); }
+    .tabs { display: flex; border-bottom: 2px solid var(--border); flex-wrap: wrap; }
     .tab-btn {
       padding: 9px 18px; border: none; background: none;
       color: var(--text2); cursor: pointer; font-size: 13px; font-weight: 600;
@@ -116,7 +116,8 @@
     }
     .picks-table td.score-col { text-align: right; font-weight: 800; background: rgba(204,0,0,.05); color: var(--espn); }
     .p-correct { background: var(--green-bg); color: var(--green-txt); font-weight: 600; }
-    .p-wrong   { background: var(--red-bg);   color: var(--red-txt); }
+    .p-wrong   { background: var(--red-bg);   color: var(--red-txt); text-decoration: line-through; }
+    .p-cross   { background: var(--red-bg);   color: var(--red-txt); text-decoration: line-through; }
     .p-pending { color: var(--text2); }
 
     /* ── MISC ── */
@@ -126,11 +127,6 @@
     .ldot-correct { background: var(--green-bg); border: 1px solid var(--green); }
     .ldot-wrong   { background: var(--red-bg);   border: 1px solid var(--espn); }
     .ldot-pending { background: transparent; border: 1px solid var(--border); }
-    .notice {
-      background: var(--card); border: 1px solid var(--border);
-      border-left: 3px solid var(--espn); padding: 10px 14px;
-      border-radius: 4px; font-size: 12px; color: var(--text2); margin-top: 10px;
-    }
     .progress-bar-wrap { display:flex; align-items:center; gap:6px; }
 
     @media(max-width:640px) {
@@ -144,196 +140,216 @@
 <div id="app"></div>
 
 <script>
-/* ================================================================
-   ✏️  ADMIN CONFIG — แก้ไขส่วนนี้เท่านั้นเมื่อมีผลการแข่งขันใหม่
-   ================================================================
-   วิธีใช้: เพิ่มชื่อทีมที่ผ่านเข้ารอบถัดไปลงใน array ของแต่ละรอบ
-   ⚠️  สะกดชื่อให้ตรงกับที่ผู้เล่นกรอก (เช่น 'Rep. of Korea' ไม่ใช่ 'South Korea')
-================================================================ */
+/* ╔══════════════════════════════════════════════════════════════╗
+   ║  🔧  อัพเดทผลการแข่งขัน — แก้ที่นี่เท่านั้น               ║
+   ║  ไม่ต้องแตะโค้ดส่วนอื่น                                    ║
+   ╠══════════════════════════════════════════════════════════════╣
+   ║  วิธีใช้:                                                   ║
+   ║    ✅  เพิ่มชื่อทีมที่ผ่านรอบใน array "ผ่าน"               ║
+   ║    ❌  เพิ่มชื่อทีมที่ตกรอบใน array "ตก"                   ║
+   ║    🏆  ใส่ชื่อทีมในรอบชิงเมื่อมีผล                         ║
+   ║  ⚠️  สะกดชื่อทีมให้ตรงกับที่แสดงในตาราง                  ║
+   ╚══════════════════════════════════════════════════════════════╝ */
 
 const RESULTS = {
 
-  /* รอบ 16 ทีม — ใส่ชื่อทีมที่ผ่าน R32 (สูงสุด 16 ทีม) */
-  r32: [
-    'Paraguay',   // ผ่าน 29 มิ.ย.
-    'Canada',     // ผ่าน 28 มิ.ย.
-    'Morocco',    // ผ่าน 29 มิ.ย.
-    'Brazil',     // ผ่าน 29 มิ.ย.
-    'Norway',     // ผ่าน 30 มิ.ย.
-    'France',     // ผ่าน 30 มิ.ย.
-    'Mexico',     // ผ่าน 30 มิ.ย.
-    'England',    // ผ่าน 1 มิ.ย.
-    'Belgium',    // ผ่าน 1 มิ.ย.
-    'USA',        // ผ่าน 1 มิ.ย.
-    'Spain',      // ผ่าน 2 มิ.ย.
-    'Portugal',   // ผ่าน 2 มิ.ย.
-    'Switzerland', // ผ่าน 2 มิ.ย.
-    'Egytp',
-    'Argentina',
-    'Colombia',
-  ],
-  /* ทีมที่ตกรอบ R32 — เพิ่มได้ทันทีเมื่อแมตช์จบ (จะแสดงสีแดงในตาราง) */
-  r32_out: [
-    'Germany',        // แพ้ Paraguay
-    'South Africa',   // แพ้ Canada
-    'Netherlands',    // แพ้ Morocco
-    'Japan',          // แพ้ Brazil
-    'Ivory Coast',    // แพ้ Norwary
-    'Sweden',         // แพ้ France
-    'Ecuador',        // แพ้ Mexico
-    'DR Congo',       // แพ้ England
-    'Senegal',        // แพ้ Belgium
-    'Bosnia and Herzegovina',  // แพ้ USA
-    'Austria',
-    'Croatia',
-    'Algeria',
-    'Australia',
-    'Cape Verde',
-    'Ghana',
-  ],
+  // ── รอบ 32 ทีม (R32) ────────────────────────────────────────
+  r32:     ['Paraguay','France','Canada','Morocco','Colombia','Spain',
+             'USA','Belgium','Brazil','Norway','Mexico','England',
+             'Argentina','Egypt','Switzerland','Portugal'],   // ✅ ผ่าน R32 (16 ทีม) — จบแล้ว 4 ก.ค.
+  r32_out: ['Germany','South Africa','Netherlands','Japan','Ghana','Austria',
+             'Bosnia/Herzeg.','Senegal','Cape Verde','Australia','Algeria','Croatia',
+             'Ivory Coast','Ecuador','Sweden'],               // ❌ ตก R32
 
-  /* รอบ QF (8 ทีม) — ใส่ทีมที่ผ่าน R16 (สูงสุด 8 ทีม) */
-  r16: [],
-  /* ทีมที่ตกรอบ R16 */
-  r16_out: [],
+  // ── รอบ 16 ทีม (R16) ────────────────────────────────────────
+  r16:     [],   // ✅ ผ่าน R16 (8 ทีม) — เพิ่มเมื่อแข่งเสร็จ (5–8 ก.ค.)
+  r16_out: [],   // ❌ ตก R16
 
-  /* รอบ SF (4 ทีม) — ใส่ทีมที่ผ่าน QF (สูงสุด 4 ทีม) */
-  qf: [],
-  /* ทีมที่ตกรอบ QF */
-  qf_out: [],
+  // ── รอบ 8 ทีม (QF) ──────────────────────────────────────────
+  qf:      [],   // ✅ ผ่าน QF (4 ทีม)
+  qf_out:  [],   // ❌ ตก QF
 
-  /* รอบชิงชนะเลิศ */
+  // ── รอบชิงชนะเลิศ ───────────────────────────────────────────
   final: {
-    fourth:   null,    // ← ทีมอันดับ 4
-    third:    null,    // ← ทีมอันดับ 3
-    second:   null,    // ← รองแชมป์
-    champion: null,    // ← ⭐ แชมป์โลก
+    fourth:   null,   // ← ชื่อทีมอันดับ 4
+    third:    null,   // ← ชื่อทีมอันดับ 3
+    second:   null,   // ← ชื่อรองแชมป์
+    champion: null,   // ← 🏆 แชมป์โลก
   },
-
 };
 
-/* ── กติกาคะแนน (ไม่ต้องแก้) ─────────────────────────────── */
+/* ── กติกาคะแนน ── */
 const SCORING = {
   r32: 5, r16: 10, qf: 20,
   final_4th: 20, final_3rd: 30, final_2nd: 40, final_champion: 50,
   max: 444,
 };
 
+/* 32 ทีมที่ผ่านรอบแบ่งกลุ่มเข้า R32 */
+const GS_QUALIFIED = new Set([
+  'Mexico','South Africa','Canada','Switzerland','Brazil','Morocco','USA','Australia',
+  'Germany','Ivory Coast','Ecuador','Netherlands','Japan','Sweden','Belgium','Egypt',
+  'Spain','France','Norway','Argentina','Austria','Colombia','Portugal','England',
+  'Ghana','Croatia','Paraguay','Cape Verde','Bosnia/Herzeg.','Senegal','Algeria'
+]);
+
 /* ================================================================
-   ข้อมูลผู้เล่น — ไม่ต้องแก้ไข
-   gs_score  = คะแนน Group Stage (admin คำนวณไว้แล้ว)
-   r32[0-15] = ทาย 16 ทีมที่จะผ่าน R32
-   r16[0-7]  = ทาย 8 ทีมที่จะผ่าน R16
-   qf[0-3]   = ทาย 4 ทีมที่จะผ่าน QF
-   final     = ทายอันดับชิง
+   ข้อมูลผู้เล่น
+   gsPicks = ทาย 32 ทีมผ่านรอบแบ่งกลุ่ม
+   r32     = ทาย 16 ทีมผ่าน R32
+   r16     = ทาย 8 ทีมผ่าน R16
+   qf      = ทาย 4 ทีมผ่าน QF
 ================================================================ */
 const PLAYERS = [
-  { name:'Chaidet1',  gs:58,
+  { name:'Chaidet1', gs:58,
+    gsPicks:['Germany','Australia','France','Egypt','Rep. of Korea','Canada','Japan','Scotland','Colombia','Croatia','Spain','Algeria','USA','Qatar','Belgium','Czech Rep.','Brazil','Netherlands','Ivory Coast','Norway','Mexico','Sweden','England','Uzbekistan','Argentina','Uruguay','Paraguay','IR Iran','Switzerland','Austria','Portugal','Ghana'],
     r32:['Germany','France','Rep. of Korea','Japan','Croatia','Spain','USA','Czech Rep.','Brazil','Ivory Coast','Mexico','England','Argentina','Paraguay','Switzerland','Portugal'],
     r16:['Germany','Japan','Spain','USA','Brazil','England','Argentina','Portugal'],
     qf:['Japan','Spain','England','Argentina'],
     final:{fourth:'Spain',third:'Argentina',second:'England',champion:'Japan'} },
-  { name:'Chaidet2',  gs:58,
+
+  { name:'Chaidet2', gs:58,
+    gsPicks:['Germany','Australia','France','Egypt','Rep. of Korea','Canada','Japan','Scotland','Colombia','Croatia','Spain','Algeria','USA','Qatar','Belgium','Czech Rep.','Brazil','Netherlands','Ivory Coast','Norway','Mexico','Sweden','England','Uzbekistan','Argentina','Uruguay','Paraguay','IR Iran','Switzerland','Austria','Portugal','Ghana'],
     r32:['Germany','France','Rep. of Korea','Japan','Croatia','Spain','USA','Belgium','Brazil','Ivory Coast','Mexico','England','Argentina','Paraguay','Switzerland','Portugal'],
     r16:['Germany','Japan','Spain','USA','Brazil','England','Argentina','Portugal'],
     qf:['Japan','Spain','England','Argentina'],
     final:{fourth:'Spain',third:'Argentina',second:'Japan',champion:'England'} },
-  { name:'den1',      gs:54,
+
+  { name:'den1', gs:54,
+    gsPicks:['Germany','Australia','France','Sweden','Mexico','Canada','Japan','Scotland','Colombia','Croatia','Spain','Jordan','USA','Bosnia/Herzeg.','Belgium','Norway','Brazil','Netherlands','Ivory Coast','Senegal','Czech Rep.','Curaçao','England','DR Congo','Argentina','Uruguay','Paraguay','Egypt','Switzerland','Algeria','Portugal','Ghana'],
     r32:['Germany','France','Mexico','Japan','Colombia','Spain','USA','Belgium','Brazil','Senegal','Czech Rep.','England','Argentina','Paraguay','Algeria','Portugal'],
     r16:['Germany','Japan','Spain','Belgium','Brazil','England','Argentina','Portugal'],
     qf:['Germany','Spain','England','Argentina'],
     final:{fourth:'Germany',third:'England',second:'Argentina',champion:'Spain'} },
-  { name:'den2',      gs:54,
+
+  { name:'den2', gs:54,
+    gsPicks:['Germany','Paraguay','France','Sweden','Rep. of Korea','Canada','Netherlands','Morocco','Colombia','Croatia','Spain','Austria','USA','Algeria','Belgium','Czech Rep.','Brazil','Japan','Ecuador','Norway','Mexico','Ivory Coast','England','Senegal','Argentina','Uruguay','Turkey','IR Iran','Switzerland','Egypt','Portugal','Panama'],
     r32:['Germany','France','Rep. of Korea','Netherlands','Croatia','Spain','USA','Belgium','Brazil','Norway','Mexico','England','Argentina','IR Iran','Switzerland','Portugal'],
     r16:['France','Netherlands','Spain','Belgium','Brazil','England','Argentina','Portugal'],
     qf:['France','Spain','England','Argentina'],
     final:{fourth:'Spain',third:'Argentina',second:'England',champion:'France'} },
-  { name:'Min',       gs:50,
+
+  { name:'Min', gs:50,
+    gsPicks:['Germany','Morocco','France','Australia','Czech Rep.','Canada','Netherlands','Scotland','Colombia','Panama','Spain','Austria','USA','Qatar','Belgium','Saudi Arabia','Brazil','Sweden','Ecuador','Norway','Mexico','Ivory Coast','England','Iraq','Argentina','Uruguay','Paraguay','IR Iran','Switzerland','New Zealand','Portugal','Croatia'],
     r32:['Germany','France','Czech Rep.','Netherlands','Colombia','Spain','USA','Belgium','Brazil','Norway','Mexico','England','Argentina','Paraguay','Switzerland','Portugal'],
     r16:['France','Netherlands','Spain','Belgium','Brazil','England','Argentina','Portugal'],
     qf:['France','Spain','Brazil','Argentina'],
     final:{fourth:'Argentina',third:'Spain',second:'Brazil',champion:'France'} },
+
   { name:'Ratapong1', gs:54,
+    gsPicks:['Germany','Scotland','France','Sweden','Czech Rep.','Bosnia/Herzeg.','Netherlands','Morocco','Colombia','Croatia','Spain','Austria','Paraguay','Ivory Coast','Belgium','Mexico','Brazil','Japan','Ecuador','Norway','Rep. of Korea','Saudi Arabia','England','Senegal','Argentina','Uruguay','USA','Egypt','Switzerland','IR Iran','Portugal','Ghana'],
     r32:['Germany','France','Czech Rep.','Netherlands','Colombia','Spain','Ivory Coast','Belgium','Brazil','Norway','Rep. of Korea','England','Argentina','Egypt','Switzerland','Portugal'],
     r16:['France','Netherlands','Spain','Belgium','Brazil','England','Argentina','Portugal'],
     qf:['France','Spain','England','Portugal'],
     final:{fourth:'France',third:'Portugal',second:'England',champion:'Spain'} },
+
   { name:'Ratapong2', gs:54,
+    gsPicks:['Germany','Scotland','France','Sweden','Czech Rep.','Bosnia/Herzeg.','Netherlands','Morocco','Colombia','Croatia','Spain','Austria','Paraguay','Ivory Coast','Belgium','Mexico','Brazil','Japan','Ecuador','Norway','Rep. of Korea','Saudi Arabia','England','Senegal','Argentina','Uruguay','USA','Egypt','Switzerland','IR Iran','Portugal','Ghana'],
     r32:['Germany','France','Czech Rep.','Netherlands','Colombia','Spain','Ivory Coast','Belgium','Brazil','Norway','Rep. of Korea','England','Argentina','Egypt','Switzerland','Portugal'],
     r16:['France','Netherlands','Spain','Belgium','Brazil','England','Argentina','Portugal'],
     qf:['France','Spain','Brazil','Portugal'],
     final:{fourth:'France',third:'Portugal',second:'Spain',champion:'Brazil'} },
-  { name:'Arsom1',    gs:58,
+
+  { name:'Arsom1', gs:58,
+    gsPicks:['Germany','Australia','France','Sweden','Rep. of Korea','Switzerland','Netherlands','Morocco','Colombia','Croatia','Spain','Austria','USA','Ivory Coast','Belgium','Czech Rep.','Brazil','Japan','Ecuador','Norway','Mexico','Scotland','England','DR Congo','Argentina','Uruguay','Turkey','IR Iran','Canada','Algeria','Portugal','Ghana'],
     r32:['Germany','France','Switzerland','Netherlands','Croatia','Spain','USA','Belgium','Brazil','Norway','Mexico','England','Argentina','Turkey','Canada','Portugal'],
     r16:['France','Netherlands','Spain','Belgium','Brazil','England','Argentina','Portugal'],
     qf:['France','Spain','England','Argentina'],
     final:{fourth:'Spain',third:'England',second:'France',champion:'Argentina'} },
-  { name:'Arsom2',    gs:54,
+
+  { name:'Arsom2', gs:54,
+    gsPicks:['Germany','Turkey','France','Sweden','Rep. of Korea','Canada','Netherlands','Morocco','Colombia','Croatia','Spain','Austria','USA','Bosnia/Herzeg.','Belgium','Ivory Coast','Brazil','Japan','Ecuador','Norway','Mexico','Scotland','England','DR Congo','Argentina','Uruguay','Paraguay','Egypt','Switzerland','New Zealand','Portugal','Ghana'],
     r32:['Germany','France','Canada','Netherlands','Colombia','Spain','USA','Belgium','Brazil','Norway','Mexico','England','Argentina','Paraguay','Switzerland','Portugal'],
     r16:['France','Netherlands','Spain','Belgium','Brazil','England','Argentina','Portugal'],
     qf:['France','Spain','England','Argentina'],
     final:{fourth:'Spain',third:'Argentina',second:'France',champion:'England'} },
+
   { name:'Cholawit1', gs:52,
+    gsPicks:['Germany','Morocco','France','Turkey','Mexico','Switzerland','Japan','Scotland','Colombia','Croatia','Spain','Algeria','USA','Canada','Egypt','Saudi Arabia','Brazil','Netherlands','Ivory Coast','Senegal','Czech Rep.','Ecuador','England','DR Congo','Argentina','Uruguay','Paraguay','Belgium','Bosnia/Herzeg.','Norway','Portugal','Ghana'],
     r32:['Germany','France','Mexico','Japan','Colombia','Spain','USA','Egypt','Brazil','Ivory Coast','Czech Rep.','England','Argentina','Belgium','Norway','Portugal'],
     r16:['France','Japan','Spain','USA','Brazil','England','Argentina','Portugal'],
     qf:['France','Spain','Brazil','Portugal'],
     final:{fourth:'Brazil',third:'Spain',second:'Portugal',champion:'France'} },
+
   { name:'Cholawit2', gs:52,
+    gsPicks:['Germany','Morocco','France','Turkey','Mexico','Switzerland','Japan','Scotland','Colombia','Croatia','Spain','Algeria','USA','Canada','Egypt','Saudi Arabia','Brazil','Netherlands','Ivory Coast','Senegal','Czech Rep.','Ecuador','England','DR Congo','Argentina','Uruguay','Paraguay','Belgium','Bosnia/Herzeg.','Norway','Portugal','Ghana'],
     r32:['Germany','France','Mexico','Japan','Colombia','Spain','USA','Egypt','Brazil','Ivory Coast','Czech Rep.','England','Argentina','Belgium','Norway','Portugal'],
     r16:['France','Japan','Spain','USA','Brazil','England','Argentina','Portugal'],
     qf:['France','Spain','Brazil','Portugal'],
     final:{fourth:'Brazil',third:'France',second:'Portugal',champion:'Spain'} },
-  { name:'Direk',     gs:52,
+
+  { name:'Direk', gs:52,
+    gsPicks:['Germany','Scotland','France','Sweden','Rep. of Korea','Canada','Japan','Morocco','Colombia','Croatia','Spain','Austria','USA','Bosnia/Herzeg.','Belgium','Czech Rep.','Brazil','Netherlands','Ecuador','Norway','Mexico','Saudi Arabia','England','Senegal','Argentina','Uruguay','Turkey','Egypt','Switzerland','IR Iran','Portugal','Ivory Coast'],
     r32:['Germany','France','Canada','Japan','Croatia','Spain','USA','Belgium','Brazil','Norway','Mexico','England','Argentina','Egypt','Switzerland','Portugal'],
     r16:['France','Japan','Spain','Belgium','Brazil','England','Argentina','Portugal'],
     qf:['France','Spain','England','Argentina'],
     final:{fourth:'France',third:'Argentina',second:'England',champion:'Spain'} },
+
   { name:'Patrawut1', gs:52,
+    gsPicks:['Germany','Turkey','France','Sweden','Rep. of Korea','Bosnia/Herzeg.','Japan','Morocco','Colombia','Ghana','Spain','Austria','Australia','Canada','Belgium','Senegal','Brazil','Netherlands','Ecuador','Norway','Mexico','Ivory Coast','England','Uzbekistan','Argentina','Uruguay','USA','IR Iran','Switzerland','Algeria','Portugal','Croatia'],
     r32:['Germany','France','Bosnia/Herzeg.','Japan','Ghana','Spain','Australia','Belgium','Brazil','Norway','Mexico','England','Argentina','USA','Switzerland','Portugal'],
     r16:['France','Japan','Spain','Belgium','Brazil','England','Argentina','Portugal'],
     qf:['France','Spain','England','Portugal'],
     final:{fourth:'France',third:'Portugal',second:'England',champion:'Spain'} },
+
   { name:'Patrawut2', gs:54,
+    gsPicks:['Germany','Paraguay','France','Sweden','Rep. of Korea','Bosnia/Herzeg.','Netherlands','Morocco','Uzbekistan','Croatia','Spain','Austria','Australia','Canada','Belgium','Senegal','Brazil','Japan','Ecuador','Norway','Mexico','Ivory Coast','England','Colombia','Argentina','Uruguay','USA','IR Iran','Switzerland','Algeria','Portugal','Ghana'],
     r32:['Germany','France','Rep. of Korea','Netherlands','Croatia','Spain','Australia','Belgium','Brazil','Norway','Mexico','England','Argentina','IR Iran','Switzerland','Portugal'],
     r16:['France','Netherlands','Spain','Belgium','Brazil','England','Argentina','Portugal'],
     qf:['France','Spain','England','Argentina'],
     final:{fourth:'Argentina',third:'France',second:'Spain',champion:'England'} },
+
   { name:'Permlarp1', gs:46,
+    gsPicks:['Germany','Turkey','France','Sweden','Czech Rep.','Canada','Netherlands','Scotland','Colombia','England','Spain','Austria','Paraguay','Ivory Coast','Belgium','South Africa','Brazil','Japan','Ecuador','Senegal','Mexico','Morocco','Croatia','Uzbekistan','Argentina','Uruguay','USA','Egypt','Bosnia/Herzeg.','New Zealand','Portugal','Panama'],
     r32:['Germany','France','Czech Rep.','Netherlands','England','Spain','Ivory Coast','Belgium','Brazil','Ecuador','Mexico','Croatia','Argentina','USA','New Zealand','Portugal'],
     r16:['Germany','Netherlands','Spain','Belgium','Brazil','Mexico','Argentina','Portugal'],
     qf:['Germany','Spain','Brazil','Argentina'],
     final:{fourth:'Argentina',third:'Spain',second:'Brazil',champion:'Germany'} },
+
   { name:'Permlarp2', gs:48,
+    gsPicks:['Germany','Turkey','France','Sweden','Czech Rep.','Switzerland','Netherlands','Morocco','Colombia','Croatia','Spain','Austria','USA','Bosnia/Herzeg.','Belgium','South Africa','Brazil','Japan','Ecuador','Senegal','Mexico','Scotland','England','Uzbekistan','Argentina','Uruguay','Paraguay','Egypt','Canada','Ivory Coast','Portugal','Panama'],
     r32:['Germany','France','Czech Rep.','Netherlands','Croatia','Spain','USA','Belgium','Brazil','Ecuador','Mexico','England','Argentina','Paraguay','Canada','Portugal'],
     r16:['Germany','Netherlands','Spain','Belgium','Brazil','England','Argentina','Portugal'],
     qf:['Germany','Spain','England','Portugal'],
     final:{fourth:'Portugal',third:'Germany',second:'Spain',champion:'England'} },
-  { name:'Som',       gs:56,
+
+  { name:'Som', gs:56,
+    gsPicks:['Germany','Australia','France','Sweden','Rep. of Korea','Canada','Netherlands','Morocco','Colombia','Croatia','Spain','Algeria','USA','Ivory Coast','Belgium','Norway','Brazil','Japan','Ecuador','Senegal','Mexico','Scotland','England','DR Congo','Argentina','Uruguay','Turkey','IR Iran','Switzerland','Austria','Portugal','Ghana'],
     r32:['Germany','France','Rep. of Korea','Morocco','Croatia','Spain','USA','Belgium','Brazil','Ecuador','Mexico','England','Argentina','Turkey','Switzerland','Portugal'],
     r16:['France','Morocco','Spain','USA','Brazil','England','Argentina','Portugal'],
     qf:['France','Spain','England','Portugal'],
     final:{fourth:'France',third:'England',second:'Portugal',champion:'Spain'} },
-  { name:'Niti',      gs:54,
+
+  { name:'Niti', gs:54,
+    gsPicks:['Germany','Scotland','France','Australia','Czech Rep.','Canada','Netherlands','Morocco','Colombia','Croatia','Uruguay','Austria','USA','Bosnia/Herzeg.','Belgium','Rep. of Korea','Brazil','Sweden','Ecuador','Senegal','Mexico','Ivory Coast','England','Norway','Argentina','Spain','Turkey','Egypt','Switzerland','IR Iran','Portugal','Ghana'],
     r32:['Germany','France','Canada','Netherlands','Croatia','Uruguay','USA','Belgium','Brazil','Senegal','Mexico','England','Argentina','Turkey','Switzerland','Portugal'],
-    r16:['Germany','Netherlands','Uruguay','USA','Brazil','English','Argentina','Portugal'],
+    r16:['Germany','Netherlands','Uruguay','USA','Brazil','England','Argentina','Portugal'],
     qf:['Germany','USA','Brazil','Argentina'],
     final:{fourth:'USA',third:'Argentina',second:'Germany',champion:'Brazil'} },
+
   { name:'Chaikrit1', gs:56,
+    gsPicks:['Germany','Scotland','France','Sweden','Czech Rep.','Canada','Japan','Morocco','Colombia','Croatia','Spain','Austria','USA','Algeria','Belgium','Rep. of Korea','Brazil','Netherlands','Ivory Coast','Norway','Mexico','Ecuador','England','Senegal','Argentina','Uruguay','Turkey','IR Iran','Switzerland','Egypt','Portugal','Ghana'],
     r32:['Germany','France','Czech Rep.','Japan','Croatia','Spain','USA','Rep. of Korea','Brazil','Norway','Mexico','England','Argentina','IR Iran','Switzerland','Portugal'],
     r16:['France','Japan','Spain','Rep. of Korea','Brazil','England','Argentina','Portugal'],
     qf:['France','Spain','Brazil','Argentina'],
     final:{fourth:'Brazil',third:'France',second:'Argentina',champion:'Spain'} },
+
   { name:'Chaikrit2', gs:56,
+    gsPicks:['Germany','Scotland','France','Sweden','Czech Rep.','Canada','Japan','Morocco','Colombia','Croatia','Spain','Austria','USA','Algeria','Belgium','Rep. of Korea','Brazil','Netherlands','Ivory Coast','Norway','Mexico','Ecuador','England','Senegal','Argentina','Uruguay','Turkey','IR Iran','Switzerland','Egypt','Portugal','Ghana'],
     r32:['Germany','France','Czech Rep.','Japan','Croatia','Spain','USA','Rep. of Korea','Brazil','Norway','Mexico','England','Argentina','IR Iran','Switzerland','Portugal'],
     r16:['France','Japan','Spain','Rep. of Korea','Brazil','England','Argentina','Portugal'],
     qf:['France','Spain','England','Argentina'],
     final:{fourth:'Argentina',third:'Spain',second:'England',champion:'France'} },
+
   { name:'Chaikrit3', gs:56,
+    gsPicks:['Germany','Scotland','France','Sweden','Czech Rep.','Canada','Japan','Morocco','Colombia','Croatia','Spain','Austria','USA','Algeria','Belgium','Rep. of Korea','Brazil','Netherlands','Ivory Coast','Norway','Mexico','Ecuador','England','Senegal','Argentina','Uruguay','Turkey','IR Iran','Switzerland','Egypt','Portugal','Ghana'],
     r32:['Germany','France','Czech Rep.','Japan','Croatia','Spain','USA','Rep. of Korea','Brazil','Norway','Mexico','England','Argentina','IR Iran','Switzerland','Portugal'],
     r16:['Germany','Japan','Spain','Rep. of Korea','Brazil','England','Argentina','Portugal'],
     qf:['Germany','Spain','England','Argentina'],
     final:{fourth:'Argentina',third:'Spain',second:'England',champion:'Germany'} },
-  { name:'Ratchapruk',gs:56,
+
+  { name:'Ratchapruk', gs:56,
+    gsPicks:['Germany','Turkey','France','Sweden','Rep. of Korea','Canada','Japan','Scotland','Colombia','Croatia','Spain','Austria','USA','Senegal','Belgium','Mexico','Brazil','Netherlands','Ivory Coast','Norway','Czech Rep.','Morocco','England','DR Congo','Argentina','Uruguay','Paraguay','Egypt','Switzerland','Ecuador','Portugal','Ghana'],
     r32:['Germany','France','Canada','Japan','Croatia','Spain','USA','Belgium','Brazil','Norway','Morocco','England','Argentina','Paraguay','Ecuador','Portugal'],
     r16:['France','Japan','Spain','Belgium','Brazil','Morocco','Argentina','Portugal'],
     qf:['France','Spain','Brazil','Portugal'],
@@ -362,20 +378,25 @@ function calcScores(p) {
   return { gs: p.gs, r32, r16, qf, final: fin, total: p.gs + r32 + r16 + qf + fin };
 }
 
-/* ── อันดับที่ของทีมที่ผู้เล่นทายแชมป์ ── */
+/* ── สถานะทีมทายแชมป์ ── */
 function champStatus(team) {
   const F = RESULTS.final;
   if (F.champion === team) return 'win';
-
-  const S32out = new Set(RESULTS.r32_out);
-  const S16out = new Set(RESULTS.r16_out);
-  const SQFout = new Set(RESULTS.qf_out);
-
-  if (S32out.has(team) || S16out.has(team) || SQFout.has(team)) return 'out';
+  if (isEliminated(team)) return 'out';
   return 'alive';
 }
 
-/* ── สีของ pick ในตาราง ── */
+/* ── ตรวจสอบว่าทีมตกรอบไปแล้วหรือยัง (ทุกรอบ รวมถึงตกรอบแบ่งกลุ่ม) ── */
+function isEliminated(team) {
+  // ทีมที่ไม่ผ่านรอบแบ่งกลุ่ม → ถือว่าตกไปแล้วทุกรอบ
+  if (!GS_QUALIFIED.has(team)) return true;
+  // ทีมที่ตกในรอบ knockout
+  return RESULTS.r32_out.includes(team)
+      || RESULTS.r16_out.includes(team)
+      || RESULTS.qf_out.includes(team);
+}
+
+/* ── สีของ pick ── */
 function pickColor(team, advSet, outSet) {
   if (advSet.has(team)) return 'p-correct';
   if (outSet.has(team)) return 'p-wrong';
@@ -410,7 +431,7 @@ function render() {
     <div class="header-logo">ESPN</div>
     <div class="header-divider"></div>
     <div>
-      <div class="header-title">⚽ GROUP1 WC 2026 Prediction</div>
+      <div class="header-title">⚽ GROUP1 — WC 2026 Prediction Pool</div>
       <div class="header-sub">${PLAYERS.length} ผู้เล่น · คะแนนเต็ม ${SCORING.max} pts</div>
     </div>
     <div class="header-right">
@@ -428,22 +449,22 @@ function render() {
         <div class="stat-sub">${leader.scores.total} pts</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">ผ่าน R32 แล้ว</div>
+        <div class="stat-label">R32 — รอบ 32 ทีม</div>
         <div class="stat-value">${r32done}<span style="font-size:14px;color:var(--text2)">/16</span></div>
-        <div class="stat-sub">เหลือ ${16-r32done} ทีม</div>
+        <div class="stat-sub" style="${r32done===16?'color:var(--green)':''}">${r32done===16?'✓ จบแล้ว':'เหลือ '+(16-r32done)+' ทีม'}</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">ผ่าน R16 แล้ว</div>
+        <div class="stat-label">R16 — รอบ 16 ทีม</div>
         <div class="stat-value">${r16done}<span style="font-size:14px;color:var(--text2)">/8</span></div>
-        <div class="stat-sub">${r16done===0?'ยังไม่เริ่ม':'เหลือ '+(8-r16done)+' ทีม'}</div>
+        <div class="stat-sub" style="${r16done===8?'color:var(--green)':''}">${r16done===0?'ยังไม่เริ่ม':r16done===8?'✓ จบแล้ว':'เหลือ '+(8-r16done)+' ทีม'}</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">ผ่าน QF แล้ว</div>
+        <div class="stat-label">QF — รอบก่อนรองฯ</div>
         <div class="stat-value">${qfdone}<span style="font-size:14px;color:var(--text2)">/4</span></div>
-        <div class="stat-sub">${qfdone===0?'ยังไม่เริ่ม':'เหลือ '+(4-qfdone)+' ทีม'}</div>
+        <div class="stat-sub" style="${qfdone===4?'color:var(--green)':''}">${qfdone===0?'ยังไม่เริ่ม':qfdone===4?'✓ จบแล้ว':'เหลือ '+(4-qfdone)+' ทีม'}</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">คะแนนสูงสุดปัจจุบัน</div>
+        <div class="stat-label">คะแนนนำ</div>
         <div class="stat-value">${leader.scores.total}</div>
         <div class="stat-sub">จากเต็ม ${SCORING.max} pts</div>
       </div>
@@ -508,15 +529,17 @@ function render() {
         <span class="section-badge">แยกตามรอบ</span>
       </div>
       <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('r32',this)">R32 — รอบ 16 ทีม</button>
+        <button class="tab-btn active" onclick="switchTab('gs',this)">GS — รอบแบ่งกลุ่ม</button>
+        <button class="tab-btn" onclick="switchTab('r32',this)">R32 — รอบ 16 ทีม</button>
         <button class="tab-btn" onclick="switchTab('r16',this)">R16 — รอบ 8 ทีม</button>
         <button class="tab-btn" onclick="switchTab('qf',this)">QF — รอบรองฯ</button>
         <button class="tab-btn" onclick="switchTab('final',this)">Final — ชิงชนะเลิศ</button>
       </div>
 
-      <div id="tab-r32" class="tab-pane active">${buildPicksTable(players,'r32',16,5)}</div>
-      <div id="tab-r16" class="tab-pane">${buildPicksTable(players,'r16',8,10)}</div>
-      <div id="tab-qf"  class="tab-pane">${buildPicksTable(players,'qf',4,20)}</div>
+      <div id="tab-gs"    class="tab-pane active">${buildGSTable(players)}</div>
+      <div id="tab-r32"  class="tab-pane">${buildPicksTable(players,'r32',16,5)}</div>
+      <div id="tab-r16"  class="tab-pane">${buildPicksTable(players,'r16',8,10)}</div>
+      <div id="tab-qf"   class="tab-pane">${buildPicksTable(players,'qf',4,20)}</div>
       <div id="tab-final" class="tab-pane">${buildFinalTable(players)}</div>
     </div>
 
@@ -524,6 +547,7 @@ function render() {
       <div class="legend-item"><div class="ldot ldot-correct"></div> ทีมผ่านรอบ ✓</div>
       <div class="legend-item"><div class="ldot ldot-wrong"></div> ทีมไม่ผ่าน ✗</div>
       <div class="legend-item"><div class="ldot ldot-pending"></div> ยังไม่มีผล</div>
+      <div class="legend-item" style="color:var(--red-txt)"><s>ขีดทับ</s> = ตกรอบก่อนหน้าแล้ว</div>
     </div>
 
     <div style="text-align:center;color:var(--text2);font-size:11px;padding:24px 0 8px">
@@ -533,19 +557,57 @@ function render() {
   `;
 }
 
+/* ── Build GS picks table ── */
+function buildGSTable(players) {
+  const n = players[0].gsPicks.length; // 32
+
+  const colCounts = Array.from({length:n}, (_,i) => {
+    const cnt = {};
+    players.forEach(p => { const t = p.gsPicks[i]; cnt[t] = (cnt[t]||0) + 1; });
+    const top = Object.entries(cnt).sort((a,b) => b[1]-a[1])[0];
+    return top ? top[0] : '?';
+  });
+
+  const thead = `<thead><tr>
+    <th class="player-col">ผู้เล่น</th>
+    ${colCounts.map((lbl,i) => {
+      const qualified = GS_QUALIFIED.has(lbl);
+      return `<th title="Slot ${i+1}" style="${qualified?'color:var(--green)!important':''}">${i+1}<br/><small style="font-weight:400;font-size:9px">${lbl}</small></th>`;
+    }).join('')}
+    <th class="score-col">คะแนน<br/><small style="font-size:9px">GS</small></th>
+  </tr></thead>`;
+
+  const tbody = players.map(p => {
+    const cells = p.gsPicks.map(team => {
+      const cls = GS_QUALIFIED.has(team) ? 'p-correct' : 'p-wrong';
+      return `<td class="${cls}">${team}</td>`;
+    }).join('');
+    return `<tr><td class="player-col">${p.name}</td>${cells}<td class="score-col">${p.scores.gs}</td></tr>`;
+  }).join('');
+
+  return `
+    <div style="font-size:11px;margin-bottom:8px">
+      <span style="color:var(--green);font-weight:600">✓ รอบแบ่งกลุ่มจบแล้ว — 32 ทีมผ่านเข้า R32</span>
+    </div>
+    <div class="picks-wrap">
+      <table class="picks-table">${thead}<tbody>${tbody}</tbody></table>
+    </div>
+    <div class="legend" style="margin-top:8px">
+      <div class="legend-item"><div class="ldot ldot-correct"></div> ผ่านเข้า R32 ✓ (+2 pts)</div>
+      <div class="legend-item"><div class="ldot ldot-wrong"></div> ตกรอบแบ่งกลุ่ม ✗</div>
+    </div>`;
+}
+
 /* ── Build picks table (r32 / r16 / qf) ── */
 function buildPicksTable(players, round, maxTeams, pts) {
   const advSet = new Set(RESULTS[round]);
   const outSet = new Set(RESULTS[round + '_out']);
   const n = players[0][round].length;
-  const doneCount = advSet.size + outSet.size;
-  const roundComplete = advSet.size === maxTeams;
 
-  // column headers: number + most popular pick
   const colCounts = Array.from({length:n}, (_,i) => {
     const cnt = {};
-    players.forEach(p => { const t=p[round][i]; cnt[t]=(cnt[t]||0)+1; });
-    const top = Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0];
+    players.forEach(p => { const t = p[round][i]; cnt[t] = (cnt[t]||0) + 1; });
+    const top = Object.entries(cnt).sort((a,b) => b[1]-a[1])[0];
     return top ? top[0] : '?';
   });
 
@@ -563,13 +625,16 @@ function buildPicksTable(players, round, maxTeams, pts) {
     const cells = p[round].map(team => {
       const cls = pickColor(team, advSet, outSet);
       if (cls === 'p-correct') earned += pts;
+      // Cross-round strikethrough: eliminated in an earlier round
+      if (cls === 'p-pending' && isEliminated(team)) {
+        return `<td class="p-cross">${team}</td>`;
+      }
       return `<td class="${cls}">${team}</td>`;
     }).join('');
     return `<tr><td class="player-col">${p.name}</td>${cells}<td class="score-col">${earned}</td></tr>`;
   }).join('');
 
-  const matchesPlayed = Math.max(advSet.size, outSet.size > 0 ? outSet.size : 0);
-  const totalPlayed   = advSet.size; // teams advanced = matches played
+  const roundComplete = advSet.size === maxTeams;
   const statusLine = roundComplete
     ? `<span style="color:var(--green);font-weight:600">✓ รอบนี้จบแล้ว — ${maxTeams} ทีมผ่าน</span>`
     : `<span style="color:var(--text2)">ผ่านแล้ว ${advSet.size}/${maxTeams} ทีม · ตกรอบ ${outSet.size} ทีม</span>`;
@@ -583,6 +648,7 @@ function buildPicksTable(players, round, maxTeams, pts) {
       <div class="legend-item"><div class="ldot ldot-correct"></div> ผ่านรอบ (+${pts} pts)</div>
       <div class="legend-item"><div class="ldot ldot-wrong"></div> ตกรอบ</div>
       <div class="legend-item"><div class="ldot ldot-pending"></div> รอผล</div>
+      <div class="legend-item" style="color:var(--red-txt)"><s>ขีดทับ</s> = ตกรอบก่อนหน้าแล้ว</div>
     </div>`;
 }
 
@@ -607,10 +673,11 @@ function buildFinalTable(players) {
     const cells = keys.map((k,i) => {
       const pick   = p.final[k] || '—';
       const winner = F[k];
-      const cs     = champStatus(pick);
-      const isDead = (k === 'champion') && cs === 'out';
+      const dead   = isEliminated(pick);
       if (!winner) {
-        return `<td class="p-pending">${isDead?`<span style="text-decoration:line-through;color:var(--red-txt)">${pick}</span>`:pick}</td>`;
+        // No result yet — show strikethrough if team already eliminated
+        if (dead) return `<td class="p-cross">${pick}</td>`;
+        return `<td class="p-pending">${pick}</td>`;
       }
       const ok = pick === winner;
       if (ok) earned += bonus[i];
@@ -624,7 +691,7 @@ function buildFinalTable(players) {
     <div class="legend-item"><div class="ldot ldot-correct"></div> ถูก</div>
     <div class="legend-item"><div class="ldot ldot-wrong"></div> ผิด</div>
     <div class="legend-item"><div class="ldot ldot-pending"></div> รอผล</div>
-    <div class="legend-item" style="color:var(--red-txt)">ขีดทับ = ทีมตกรอบแล้ว</div>
+    <div class="legend-item" style="color:var(--red-txt)"><s>ขีดทับ</s> = ทีมตกรอบแล้ว</div>
   </div>`;
 }
 
