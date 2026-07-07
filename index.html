@@ -156,14 +156,22 @@ const RESULTS = {
   // ── รอบ 32 ทีม (R32) ────────────────────────────────────────
   r32:     ['Paraguay','France','Canada','Morocco','Colombia','Spain',
              'USA','Belgium','Brazil','Norway','Mexico','England',
-             'Argentina','Egypt','Switzerland','Portugal'],  // ✅ ผ่าน R32 (16 ทีม) — จบแล้ว 4 ก.ค.
+             'Argentina','Egypt','Switzerland','Portugal'],   // ✅ ผ่าน R32 (16 ทีม) — จบแล้ว 4 ก.ค.
   r32_out: ['Germany','South Africa','Netherlands','Japan','Ghana','Austria',
              'Bosnia/Herzeg.','Senegal','Cape Verde','Australia','Algeria','Croatia',
              'Ivory Coast','Ecuador','Sweden'],               // ❌ ตก R32
 
   // ── รอบ 16 ทีม (R16) ────────────────────────────────────────
-  r16:     ['Morocco','France','Norway','England','Spain','Belgium'],   // ✅ ผ่าน R16 (8 ทีม) — เพิ่มเมื่อแข่งเสร็จ (5–8 ก.ค.)
-  r16_out: ['Canada','Paraguay','Brazil','Mexico'],'Portugal','USA',   // ❌ ตก R16
+  //  ✅ ยืนยันแล้ว (ESPN bracket):
+  //     4 ก.ค. France 1-0 Paraguay  |  5 ก.ค. Morocco 3-0 Canada
+  //     5 ก.ค. Norway 2-1 Brazil    |  5 ก.ค. England 3-2 Mexico
+  //  ⏳ รอผล — เพิ่มทีมที่ผ่านด้านล่าง:
+  //     6 ก.ค. Portugal vs Spain    ← ใส่ผู้ชนะใน r16[] และผู้แพ้ใน r16_out[]
+  //     6 ก.ค. USA vs Belgium       ← ใส่ผู้ชนะใน r16[] และผู้แพ้ใน r16_out[]
+  //     7 ก.ค. Argentina vs Egypt   ← ใส่ผู้ชนะใน r16[] และผู้แพ้ใน r16_out[]
+  //     7 ก.ค. Switzerland vs Colombia ← ใส่ผู้ชนะใน r16[] และผู้แพ้ใน r16_out[]
+  r16:     ['France','Morocco','Norway','England'],  // ✅ 4 ทีมผ่านแล้ว + รออีก 4 ทีม
+  r16_out: ['Paraguay','Canada','Brazil','Mexico'],  // ❌ 4 ทีมตกแล้ว + รออีก 4 ทีม
 
   // ── รอบ 8 ทีม (QF) ──────────────────────────────────────────
   qf:      [],   // ✅ ผ่าน QF (4 ทีม)
