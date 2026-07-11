@@ -162,19 +162,20 @@ const RESULTS = {
              'Ivory Coast','Ecuador','Sweden'],               // ❌ ตก R32
 
   // ── รอบ 16 ทีม (R16) ────────────────────────────────────────
-  //  ✅ ยืนยันแล้ว 6 แมตช์:
-  //     4 ก.ค. France 1-0 Paraguay    |  5 ก.ค. Morocco 3-0 Canada
-  //     5 ก.ค. Norway 2-1 Brazil      |  5 ก.ค. England 3-2 Mexico
-  //     6 ก.ค. Spain def. Portugal    |  6 ก.ค. Belgium def. USA
-  //  ⏳ รอผล 2 แมตช์ — เพิ่มทีมที่ผ่านด้านล่าง:
-  //     7 ก.ค. Argentina vs Egypt     ← ใส่ผู้ชนะใน r16[] และผู้แพ้ใน r16_out[]
-  //     7 ก.ค. Switzerland vs Colombia ← ใส่ผู้ชนะใน r16[] และผู้แพ้ใน r16_out[]
-  r16:     ['France','Morocco','Norway','England','Spain','Belgium','Argentina','Switzerland'],   // ✅ 6 ทีมผ่านแล้ว + รออีก 2 ทีม
-  r16_out: ['Paraguay','Canada','Brazil','Mexico','Portugal','USA','Egypt','Colombia'],    // ❌ 6 ทีมตกแล้ว + รออีก 2 ทีม
+  //  ✅ จบแล้ว 8 แมตช์ (4-7 ก.ค.):
+  //     4 ก.ค. France def. Paraguay     |  5 ก.ค. Morocco def. Canada
+  //     5 ก.ค. Norway def. Brazil       |  5 ก.ค. England def. Mexico
+  //     6 ก.ค. Spain def. Portugal      |  6 ก.ค. Belgium def. USA
+  //     7 ก.ค. Argentina def. Egypt     |  7 ก.ค. Switzerland def. Colombia
+  r16:     ['France','Morocco','Norway','England','Spain','Belgium','Argentina','Switzerland'],
+  r16_out: ['Paraguay','Canada','Brazil','Mexico','Portugal','USA','Egypt','Colombia'],
 
-  // ── รอบ 8 ทีม (QF) ──────────────────────────────────────────
-  qf:      ['France','Spain'],   // ✅ ผ่าน QF (4 ทีม)
-  qf_out:  ['Morocco','Belgium'],   // ❌ ตก QF
+  // ── รอบ 8 ทีม / QF (9-11 ก.ค.) ─────────────────────────────
+  //  ✅ จบแล้ว 2 แมตช์:
+  //      9 ก.ค. France def. Morocco    | 11 ก.ค. Spain def. Belgium
+  //  ⏳ รอผล 2 แมตช์ — จาก Norway / England / Argentina / Switzerland
+  qf:      ['France','Spain'],
+  qf_out:  ['Morocco','Belgium'],
 
   // ── รอบชิงชนะเลิศ ───────────────────────────────────────────
   final: {
@@ -191,6 +192,9 @@ const SCORING = {
   final_4th: 20, final_3rd: 30, final_2nd: 40, final_champion: 50,
   max: 444,
 };
+
+/* ── ผู้เล่นที่หมดลุ้นแน่นอน (simulation 144 scenarios — 11 ก.ค. 69) ── */
+const ELIMINATED_PLAYERS = new Set(['Chaidet1','Chaidet2','Permlarp1','Permlarp2','Niti']);
 
 /* 32 ทีมที่ผ่านรอบแบ่งกลุ่มเข้า R32 */
 const GS_QUALIFIED = new Set([
@@ -506,9 +510,12 @@ function render() {
               const champCls = cs==='win'?'champ-win':cs==='out'?'champ-out':'champ-alive';
               const champSuffix = cs==='win'?' 🏆':cs==='out'?' ✗':'';
               const pct = Math.round(s.total/SCORING.max*100);
-              return `<tr>
+              const isOut = ELIMINATED_PLAYERS.has(p.name);
+              const rowStyle = isOut ? 'opacity:0.55;' : '';
+              const outBadge = isOut ? ' <span style="display:inline-block;font-size:9px;font-weight:700;background:#c0392b;color:#fff;border-radius:3px;padding:1px 4px;vertical-align:middle;margin-left:4px">หมดลุ้น</span>' : '';
+              return `<tr style="${rowStyle}">
                 <td><span class="rank ${rCls}">${rIcon||p.rank}</span></td>
-                <td><span class="player-name">${p.name}</span></td>
+                <td><span class="player-name">${p.name}</span>${outBadge}</td>
                 <td class="num score-part">${s.gs}</td>
                 <td class="num score-part">${s.r32}</td>
                 <td class="num score-part">${s.r16}</td>
@@ -555,6 +562,7 @@ function render() {
       <div class="legend-item"><div class="ldot ldot-wrong"></div> ทีมไม่ผ่าน ✗</div>
       <div class="legend-item"><div class="ldot ldot-pending"></div> ยังไม่มีผล</div>
       <div class="legend-item" style="color:var(--red-txt)"><s>ขีดทับ</s> = ตกรอบก่อนหน้าแล้ว</div>
+      <div class="legend-item"><span style="font-size:9px;font-weight:700;background:#c0392b;color:#fff;border-radius:3px;padding:1px 4px">หมดลุ้น</span> = ไม่มีสิทธิ์ชนะไม่ว่าผลจะเป็นอย่างไร</div>
     </div>
 
     <div style="text-align:center;color:var(--text2);font-size:11px;padding:24px 0 8px">
