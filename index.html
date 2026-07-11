@@ -193,8 +193,16 @@ const SCORING = {
   max: 444,
 };
 
-/* ── ผู้เล่นที่หมดลุ้นแน่นอน (simulation 144 scenarios — 11 ก.ค. 69) ── */
-const ELIMINATED_PLAYERS = new Set(['Chaidet1','Chaidet2','Permlarp1','Permlarp2','Niti']);
+/* ── ผู้เล่นที่หมดลุ้นแน่นอน (simulation 144 scenarios — 11 ก.ค. 69) ── *
+ *  กลุ่ม 1 (คะแนนสูงสุดที่เป็นไปได้ < คะแนน leader ที่ล็อกแล้ว):
+ *    Niti, Permlarp1, Permlarp2, Chaidet1, Chaidet2
+ *  กลุ่ม 2 (ชนะ leader ได้ แต่มี 0/144 scenarios ที่ชนะ pool ได้):
+ *    Ratchapruk, Ratapong1, Patrawut1, Cholawit1, Chaikrit3
+ *    → ทุก scenario ที่ได้คะแนนสูง จะมีผู้เล่นอื่นได้สูงกว่าเสมอ            */
+const ELIMINATED_PLAYERS = new Set([
+  'Chaidet1','Chaidet2','Permlarp1','Permlarp2','Niti',          // กลุ่ม 1
+  'Ratchapruk','Ratapong1','Patrawut1','Cholawit1','Chaikrit3',  // กลุ่ม 2
+]);
 
 /* 32 ทีมที่ผ่านรอบแบ่งกลุ่มเข้า R32 */
 const GS_QUALIFIED = new Set([
