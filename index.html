@@ -170,12 +170,12 @@ const RESULTS = {
   r16:     ['France','Morocco','Norway','England','Spain','Belgium','Argentina','Switzerland'],
   r16_out: ['Paraguay','Canada','Brazil','Mexico','Portugal','USA','Egypt','Colombia'],
 
-  // ── รอบ 8 ทีม / QF (9-11 ก.ค.) ─────────────────────────────
-  //  ✅ จบแล้ว 2 แมตช์:
+  // ── รอบ 8 ทีม / QF (9-12 ก.ค.) ─────────────────────────────
+  //  ✅ จบแล้ว 4 แมตช์:
   //      9 ก.ค. France def. Morocco    | 11 ก.ค. Spain def. Belgium
-  //  ⏳ รอผล 2 แมตช์ — จาก Norway / England / Argentina / Switzerland
-  qf:      ['France','Spain'],
-  qf_out:  ['Morocco','Belgium'],
+  //     12 ก.ค. England def. Norway    | 12 ก.ค. Argentina def. Switzerland
+  qf:      ['France','Spain','England','Argentina'],
+  qf_out:  ['Morocco','Belgium','Norway','Switzerland'],
 
   // ── รอบชิงชนะเลิศ ───────────────────────────────────────────
   final: {
@@ -193,15 +193,26 @@ const SCORING = {
   max: 444,
 };
 
-/* ── ผู้เล่นที่หมดลุ้นแน่นอน (simulation 144 scenarios — 11 ก.ค. 69) ── *
- *  กลุ่ม 1 (คะแนนสูงสุดที่เป็นไปได้ < คะแนน leader ที่ล็อกแล้ว):
- *    Niti, Permlarp1, Permlarp2, Chaidet1, Chaidet2
- *  กลุ่ม 2 (ชนะ leader ได้ แต่มี 0/144 scenarios ที่ชนะ pool ได้):
- *    Ratchapruk, Ratapong1, Patrawut1, Cholawit1, Chaikrit3
- *    → ทุก scenario ที่ได้คะแนนสูง จะมีผู้เล่นอื่นได้สูงกว่าเสมอ            */
+/* ── ผู้เล่นที่หมดลุ้นแน่นอน (simulation 24 scenarios — 12 ก.ค. 69) ── *
+ *  Final 4: France · Spain · England · Argentina (QF จบครบแล้ว)          *
+ *  Leader ที่ล็อกแล้ว: Arsom2 = 254 pts                                   *
+ *                                                                          *
+ *  กลุ่ม 1 (คะแนนสูงสุดที่เป็นไปได้ < 254):                              *
+ *    Niti (max=174), Permlarp1 (max=211)                                   *
+ *  กลุ่ม 2 (max ≥ 254 แต่ชนะ pool ได้ 0/24 scenarios):                   *
+ *    Chaidet1, Chaidet2, Min, Ratapong1, Ratapong2,                        *
+ *    Cholawit1, Cholawit2, Patrawut1, Permlarp2, Som,                      *
+ *    Chaikrit3, Ratchapruk                                                  *
+ *    → ทุก scenario ที่ตัวเองได้สูง จะมีผู้เล่นอื่นได้สูงกว่าเสมอ        *
+ *                                                                          *
+ *  ผู้ที่ยังลุ้นได้ (8 คน):                                               *
+ *    Arsom1 5/24 · Arsom2 5/24 · Direk 4/24 · den2 3/24                   *
+ *    Chaikrit2 3/24 · Patrawut2 2/24 · den1 1/24 · Chaikrit1 1/24         */
 const ELIMINATED_PLAYERS = new Set([
-  'Chaidet1','Chaidet2','Permlarp1','Permlarp2','Niti',          // กลุ่ม 1
-  'Ratchapruk','Ratapong1','Patrawut1','Cholawit1','Chaikrit3',  // กลุ่ม 2
+  'Niti','Permlarp1',                                               // กลุ่ม 1
+  'Chaidet1','Chaidet2','Min','Ratapong1','Ratapong2',              // กลุ่ม 2
+  'Cholawit1','Cholawit2','Patrawut1','Permlarp2','Som',            // กลุ่ม 2
+  'Chaikrit3','Ratchapruk',                                         // กลุ่ม 2
 ]);
 
 /* 32 ทีมที่ผ่านรอบแบ่งกลุ่มเข้า R32 */
