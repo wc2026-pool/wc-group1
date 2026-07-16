@@ -584,20 +584,20 @@ function render() {
         <span class="section-badge">แยกตามรอบ</span>
       </div>
       <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('gs',this)">GS — รอบแบ่งกลุ่ม</button>
-        <button class="tab-btn" onclick="switchTab('r32',this)">R32 — รอบ 16 ทีม</button>
-        <button class="tab-btn" onclick="switchTab('r16',this)">R16 — รอบ 8 ทีม</button>
-        <button class="tab-btn" onclick="switchTab('qf',this)">QF — รอบก่อนรองฯ</button>
+        <button class="tab-btn active" onclick="switchTab('analysis',this)" style="color:#b07a00">📊 วิเคราะห์โอกาส</button>
         <button class="tab-btn" onclick="switchTab('final',this)">Final — ชิงชนะเลิศ</button>
-        <button class="tab-btn" onclick="switchTab('analysis',this)" style="color:#b07a00">📊 วิเคราะห์โอกาส</button>
+        <button class="tab-btn" onclick="switchTab('qf',this)">QF — รอบก่อนรองฯ</button>
+        <button class="tab-btn" onclick="switchTab('r16',this)">R16 — รอบ 8 ทีม</button>
+        <button class="tab-btn" onclick="switchTab('r32',this)">R32 — รอบ 16 ทีม</button>
+        <button class="tab-btn" onclick="switchTab('gs',this)">GS — รอบแบ่งกลุ่ม</button>
       </div>
 
-      <div id="tab-gs"    class="tab-pane active">${buildGSTable(players)}</div>
-      <div id="tab-r32"  class="tab-pane">${buildPicksTable(players,'r32',16,5)}</div>
-      <div id="tab-r16"  class="tab-pane">${buildPicksTable(players,'r16',8,10)}</div>
-      <div id="tab-qf"   class="tab-pane">${buildPicksTable(players,'qf',4,20)}</div>
+      <div id="tab-analysis" class="tab-pane active">${buildAnalysisTable(players)}</div>
       <div id="tab-final" class="tab-pane">${buildFinalTable(players)}</div>
-      <div id="tab-analysis" class="tab-pane">${buildAnalysisTable(players)}</div>
+      <div id="tab-qf"   class="tab-pane">${buildPicksTable(players,'qf',4,20)}</div>
+      <div id="tab-r16"  class="tab-pane">${buildPicksTable(players,'r16',8,10)}</div>
+      <div id="tab-r32"  class="tab-pane">${buildPicksTable(players,'r32',16,5)}</div>
+      <div id="tab-gs"   class="tab-pane">${buildGSTable(players)}</div>
     </div>
 
     <div class="legend">
@@ -723,7 +723,7 @@ function buildFinalTable(players) {
       const w = F[keys[i]];
       return `<th>${lbl}<br/><small style="font-weight:400;font-size:9px">${w?'✅ '+w:'รอผล'}</small><br/><small style="font-size:9px;color:var(--gold)">(+${bonus[i]}pt)</small></th>`;
     }).join('')}
-    <th class="score-col">โบนัส</th>
+    <th class="score-col">คะแนน</th>
   </tr></thead>`;
 
   const tbody = players.map(p => {
