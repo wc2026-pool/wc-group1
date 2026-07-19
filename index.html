@@ -185,11 +185,13 @@ const RESULTS = {
   sf_out:  ['England','France'],    // ลงเล่นนัดชิงอันดับ 3
 
   // ── รอบชิงชนะเลิศ ───────────────────────────────────────────
+  //  ✅ 3rd place (19 ก.ค.): England def. France
+  //  ⏳ Final (19 ก.ค.): Argentina vs Spain — รอผล
   final: {
-    fourth:   null,   // ← ชื่อทีมอันดับ 4  (England หรือ France)
-    third:    null,   // ← ชื่อทีมอันดับ 3  (England หรือ France)
-    second:   null,   // ← ชื่อรองแชมป์     (Argentina หรือ Spain)
-    champion: null,   // ← 🏆 แชมป์โลก      (Argentina หรือ Spain)
+    fourth:   'France',   // ✅ France อันดับ 4
+    third:    'England',  // ✅ England อันดับ 3
+    second:   null,       // ⏳ รองแชมป์ (Argentina หรือ Spain)
+    champion: null,       // ⏳ 🏆 แชมป์โลก (Argentina หรือ Spain)
   },
 };
 
@@ -200,23 +202,20 @@ const SCORING = {
   max: 444,
 };
 
-/* ── ผู้เล่นที่หมดลุ้นแน่นอน (simulation 4 scenarios — 16 ก.ค. 69) ── *
- *  SF จบแล้ว: Final = Argentina vs Spain | 3rd = England vs France       *
- *  เหลือ 4 scenarios เท่านั้น (3rd place: Eng/Fra × Final: Arg/Spa)      *
+/* ── ผู้เล่นที่หมดลุ้นแน่นอน (simulation 2 scenarios — 19 ก.ค. 69) ── *
+ *  3rd place จบแล้ว: England=3rd, France=4th                             *
+ *  เหลือ 2 scenarios: Spain=แชมป์ หรือ Argentina=แชมป์                   *
  *                                                                         *
- *  ผู้ที่ยังลุ้นได้ (4 คน — คนละ 1/4 = 25%):                           *
- *    den1     → ต้องการ Spain=แชมป์ + England=3rd                        *
- *    Arsom1   → ต้องการ Argentina=แชมป์ + England=3rd                    *
- *    Patrawut2→ ต้องการ Argentina=แชมป์ + France=3rd                     *
- *    Chaikrit1→ ต้องการ Spain=แชมป์ + France=3rd                         *
+ *  ผู้ที่ยังลุ้นได้ (2 คน — คนละ 50%):                                  *
+ *    den1   (209+30=239) → ถ้า Spain=แชมป์ ได้ 329 pts 🏆                *
+ *    Arsom1 (248+30=278) → ถ้า Argentina=แชมป์ ได้ 328 pts 🏆            *
  *                                                                         *
- *  หมดลุ้น 18 คน (รวม Arsom2 lock=254 แต่ Final picks ทุกตัวเป็นไปไม่ได้) */
+ *  หมดลุ้น 20 คน (รวม Patrawut2/Chaikrit1 ที่ต้องการ France=3rd)        */
 const ELIMINATED_PLAYERS = new Set([
-  // ตก SF: ทีม picks ในรอบ Final ไม่มีทีมที่ยังเหลืออยู่ในตำแหน่งที่ถูก
-  'Arsom2','Direk','den2','Chaikrit2','Min',
-  'Som','Ratapong1','Patrawut1','Ratchapruk',
-  'Cholawit1','Cholawit2','Ratapong2','Permlarp2',
-  'Chaidet1','Chaidet2','Chaikrit3','Permlarp1','Niti',
+  'Chaidet1','Chaidet2','den2','Min','Ratapong1','Ratapong2',
+  'Arsom2','Cholawit1','Cholawit2','Direk','Patrawut1','Patrawut2',
+  'Permlarp1','Permlarp2','Som','Niti','Chaikrit1','Chaikrit2',
+  'Chaikrit3','Ratchapruk',
 ]);
 
 /* 32 ทีมที่ผ่านรอบแบ่งกลุ่มเข้า R32 */
@@ -754,17 +753,9 @@ function buildFinalTable(players) {
 
 /* ── Build analysis tab ── */
 function buildAnalysisTable(players) {
-  const SF_FIN = new Set(RESULTS.sf || []);
-  const SF_OUT = new Set(RESULTS.sf_out || []);
-  const sfDone = SF_FIN.size === 2;
-
-  // 4 valid scenarios
-  const scenarios = sfDone ? [
-    {champion:'Spain',  second:'Argentina', third:'France',  fourth:'England'},
-    {champion:'Spain',  second:'Argentina', third:'England', fourth:'France'},
-    {champion:'Argentina', second:'Spain',  third:'France',  fourth:'England'},
-    {champion:'Argentina', second:'Spain',  third:'England', fourth:'France'},
-  ] : [];
+  const F = RESULTS.final;
+  const thirdDone   = !!F.third;    // England=3rd confirmed
+  const championDone = !!F.champion; // Final not played yet
 
   const SCORING_F = [SCORING.final_4th, SCORING.final_3rd, SCORING.final_2nd, SCORING.final_champion];
   const FKEYS = ['fourth','third','second','champion'];
@@ -772,67 +763,101 @@ function buildAnalysisTable(players) {
   function calcTotal(p, s) {
     const locked = p.scores.gs + p.scores.r32 + p.scores.r16 + p.scores.qf;
     let fin = 0;
-    FKEYS.forEach((k,i) => { if (p.final[k] === s[k]) fin += SCORING_F[i]; });
+    FKEYS.forEach((k,i) => { if (s[k] && p.final[k] === s[k]) fin += SCORING_F[i]; });
     return locked + fin;
   }
 
-  const scenarioLabels = [
-    'Spain=แชมป์<br>France=3rd',
-    'Spain=แชมป์<br>England=3rd',
-    'Argentina=แชมป์<br>France=3rd',
-    'Argentina=แชมป์<br>England=3rd',
-  ];
-
-  if (!sfDone) {
-    return `<div style="padding:20px;color:var(--text2);text-align:center">⏳ รอผล SF ก่อน — จะแสดงตาราง 4 scenarios หลังทราบผลรอบรองชนะเลิศ</div>`;
+  // Build scenarios based on what's known
+  let scenarios, scenarioLabels, totalScenarios;
+  if (championDone) {
+    // Final complete — 1 scenario only
+    scenarios = [F];
+    scenarioLabels = [`🏆 ${F.champion}=แชมป์<br>${F.second}=รอง`];
+    totalScenarios = 1;
+  } else if (thirdDone) {
+    // 3rd place done, Final pending → 2 scenarios
+    scenarios = [
+      {fourth:F.fourth, third:F.third, second:'Argentina', champion:'Spain'},
+      {fourth:F.fourth, third:F.third, second:'Spain',     champion:'Argentina'},
+    ];
+    scenarioLabels = [
+      `🇪🇸 Spain=แชมป์<br><small>Arg=2nd · Eng=3rd · Fra=4th</small>`,
+      `🇦🇷 Argentina=แชมป์<br><small>Spa=2nd · Eng=3rd · Fra=4th</small>`,
+    ];
+    totalScenarios = 2;
+  } else {
+    // SF done, no 3rd/Final → 4 scenarios
+    scenarios = [
+      {champion:'Spain',     second:'Argentina', third:'France',  fourth:'England'},
+      {champion:'Spain',     second:'Argentina', third:'England', fourth:'France'},
+      {champion:'Argentina', second:'Spain',     third:'France',  fourth:'England'},
+      {champion:'Argentina', second:'Spain',     third:'England', fourth:'France'},
+    ];
+    scenarioLabels = [
+      '🇪🇸 Spain=แชมป์<br>France=3rd', '🇪🇸 Spain=แชมป์<br>England=3rd',
+      '🇦🇷 Argentina=แชมป์<br>France=3rd', '🇦🇷 Argentina=แชมป์<br>England=3rd',
+    ];
+    totalScenarios = 4;
   }
 
-  const thead = `<thead><tr>
-    <th class="player-col" rowspan="2">ผู้เล่น</th>
-    <th class="num" rowspan="2">Locked<br><small style="font-size:9px;font-weight:400">ก่อน Final</small></th>
-    ${scenarioLabels.map((lbl,i) => `<th class="num" style="background:rgba(204,0,0,.04)">${i<2?'🇪🇸':'🇦🇷'} ${lbl}</th>`).join('')}
-    <th class="num" rowspan="2" style="background:rgba(0,122,46,.06);color:var(--green)">ชนะ<br><small style="font-size:9px">/ 4</small></th>
-  </tr></thead>`;
+  if (!scenarios.length) {
+    return `<div style="padding:20px;color:var(--text2);text-align:center">⏳ รอผล SF ก่อน</div>`;
+  }
 
-  // Compute scores for each scenario
-  const scenarioMaxes = scenarios.map(s => {
-    const all = players.map(p => calcTotal(p, s));
-    return Math.max(...all);
-  });
+  // Banner message
+  let bannerHtml;
+  if (championDone) {
+    bannerHtml = `<strong style="color:var(--green)">🏆 ผลสุดท้าย: ${F.champion}=แชมป์</strong> &nbsp;|&nbsp; ผู้ชนะ pool คือ...</strong>`;
+  } else if (thirdDone) {
+    bannerHtml = `<strong style="color:var(--gold)">✅ England=3rd, France=4th</strong> &nbsp;|&nbsp;
+      <strong style="color:var(--espn)">⏳ รอชี้ชะตา: Argentina vs Spain (Final)</strong> &nbsp;|&nbsp;
+      เหลือ <strong>2 scenarios</strong> · ผู้มีโอกาส <strong style="color:var(--green)">2 คน (50%)</strong>`;
+  } else {
+    bannerHtml = `<strong style="color:var(--gold)">🏆 Final: Argentina vs Spain | 🥉 3rd: England vs France</strong> &nbsp;|&nbsp; 4 scenarios`;
+  }
+
+  const scenarioMaxes = scenarios.map(s => Math.max(...players.map(p => calcTotal(p, s))));
+
+  const thead = `<thead><tr>
+    <th class="player-col">ผู้เล่น</th>
+    <th class="num">คะแนนปัจจุบัน<br><small style="font-size:9px;font-weight:400">ก่อน Final</small></th>
+    ${scenarioLabels.map(lbl => `<th class="num" style="background:rgba(204,0,0,.04);min-width:120px">${lbl}</th>`).join('')}
+    <th class="num" style="background:rgba(0,122,46,.06);color:var(--green)">ชนะ<br><small style="font-size:9px">/${totalScenarios}</small></th>
+  </tr></thead>`;
 
   const tbody = players.map(p => {
     const isOut = ELIMINATED_PLAYERS.has(p.name);
-    const locked = p.scores.gs + p.scores.r32 + p.scores.r16 + p.scores.qf;
+    const current = p.scores.gs + p.scores.r32 + p.scores.r16 + p.scores.qf + p.scores.final;
+    const locked  = p.scores.gs + p.scores.r32 + p.scores.r16 + p.scores.qf;
     let wins = 0;
     const cells = scenarios.map((s, si) => {
       const total = calcTotal(p, s);
-      const isWin = total === scenarioMaxes[si] && !isOut;
+      const isWin = (total === scenarioMaxes[si]);
       const bonus = total - locked;
-      if (isWin) wins++;
-      const bgStyle = isWin ? 'background:rgba(0,122,46,.12);font-weight:800;color:var(--green)' :
-                      isOut ? 'color:#aaa' : '';
-      return `<td class="num" style="${bgStyle}">${total}${bonus>0?`<span style="font-size:9px;color:var(--text2)"> (+${bonus})</span>`:''}${isWin?' 🏆':''}</td>`;
+      if (isWin && !isOut) wins++;
+      const bgStyle = (isWin && !isOut) ? 'background:rgba(0,122,46,.14);font-weight:800;color:var(--green)' :
+                      isOut ? 'color:#bbb' : '';
+      const winMark = (isWin && !isOut) ? ' 🏆' : '';
+      return `<td class="num" style="${bgStyle}">${total}${bonus>0?`<span style="font-size:9px;color:var(--text2)"> (+${bonus})</span>`:''}${winMark}</td>`;
     }).join('');
-    const rStyle = isOut ? 'opacity:0.5' : '';
+    const rStyle = isOut ? 'opacity:0.45' : '';
     const outBadge = isOut ? ' <span style="font-size:9px;font-weight:700;background:#c0392b;color:#fff;border-radius:3px;padding:1px 4px">หมดลุ้น</span>' : '';
     const winCell = wins > 0
-      ? `<td class="num" style="background:rgba(0,122,46,.08);font-weight:800;color:var(--green)">${wins}/4</td>`
-      : `<td class="num" style="color:#ccc">0/4</td>`;
-    return `<tr style="${rStyle}"><td class="player-col">${p.name}${outBadge}</td><td class="num" style="font-weight:700">${locked}</td>${cells}${winCell}</tr>`;
+      ? `<td class="num" style="background:rgba(0,122,46,.10);font-weight:800;color:var(--green)">${wins}/${totalScenarios}</td>`
+      : `<td class="num" style="color:#ddd">0/${totalScenarios}</td>`;
+    return `<tr style="${rStyle}"><td class="player-col">${p.name}${outBadge}</td><td class="num" style="font-weight:700;color:var(--espn)">${current}</td>${cells}${winCell}</tr>`;
   }).join('');
 
   return `
-    <div style="font-size:11px;margin-bottom:8px;padding:8px 12px;background:rgba(176,122,0,.08);border-radius:4px;border:1px solid rgba(176,122,0,.2)">
-      <strong style="color:var(--gold)">🏆 Final: Argentina vs Spain</strong> &nbsp;|&nbsp;
-      <strong style="color:var(--text2)">🥉 3rd place: England vs France</strong> &nbsp;|&nbsp;
-      เหลือ <strong>4 scenarios</strong> · ผู้มีโอกาสชนะ <strong style="color:var(--green)">4 คน</strong> (คนละ 25%)
+    <div style="font-size:11px;margin-bottom:10px;padding:10px 14px;background:rgba(176,122,0,.08);border-radius:4px;border:1px solid rgba(176,122,0,.25)">
+      ${bannerHtml}
     </div>
     <div class="picks-wrap">
       <table class="picks-table">${thead}<tbody>${tbody}</tbody></table>
     </div>
     <div class="legend" style="margin-top:8px">
-      <div class="legend-item"><span style="color:var(--green);font-weight:700">🏆 ตัวเลขสีเขียว</span> = ชนะ scenario นั้น</div>
-      <div class="legend-item"><span style="font-size:9px;font-weight:700;background:#c0392b;color:#fff;border-radius:3px;padding:1px 4px">หมดลุ้น</span> = ไม่มีทางชนะ pool แล้ว</div>
+      <div class="legend-item"><span style="color:var(--green);font-weight:700">🏆 ตัวเลขสีเขียว</span> = ชนะ pool ใน scenario นั้น</div>
+      <div class="legend-item"><span style="font-size:9px;font-weight:700;background:#c0392b;color:#fff;border-radius:3px;padding:1px 4px">หมดลุ้น</span> = ไม่มีทางชนะไม่ว่าผลจะออกมาอย่างไร</div>
     </div>`;
 }
 
