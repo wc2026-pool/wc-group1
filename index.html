@@ -185,13 +185,13 @@ const RESULTS = {
   sf_out:  ['England','France'],    // ลงเล่นนัดชิงอันดับ 3
 
   // ── รอบชิงชนะเลิศ ───────────────────────────────────────────
-  //  ✅ 3rd place (19 ก.ค.): England def. France
-  //  ⏳ Final (19 ก.ค.): Argentina vs Spain — รอผล
+  //  ✅ 3rd place (19 ก.ค.): England def. France  →  England=3rd, France=4th
+  //  ✅ Final    (20 ก.ค.): Spain def. Argentina  →  Spain=แชมป์, Argentina=2nd
   final: {
-    fourth:   'France',   // ✅ France อันดับ 4
-    third:    'England',  // ✅ England อันดับ 3
-    second:   null,       // ⏳ รองแชมป์ (Argentina หรือ Spain)
-    champion: null,       // ⏳ 🏆 แชมป์โลก (Argentina หรือ Spain)
+    fourth:   'France',    // ✅ France อันดับ 4
+    third:    'England',   // ✅ England อันดับ 3
+    second:   'Argentina', // ✅ Argentina รองแชมป์
+    champion: 'Spain',     // ✅ 🏆 Spain แชมป์โลก 2026
   },
 };
 
@@ -202,18 +202,26 @@ const SCORING = {
   max: 444,
 };
 
-/* ── ผู้เล่นที่หมดลุ้นแน่นอน (simulation 2 scenarios — 19 ก.ค. 69) ── *
- *  3rd place จบแล้ว: England=3rd, France=4th                             *
- *  เหลือ 2 scenarios: Spain=แชมป์ หรือ Argentina=แชมป์                   *
- *                                                                         *
- *  ผู้ที่ยังลุ้นได้ (2 คน — คนละ 50%):                                  *
- *    den1   (209+30=239) → ถ้า Spain=แชมป์ ได้ 329 pts 🏆                *
- *    Arsom1 (248+30=278) → ถ้า Argentina=แชมป์ ได้ 328 pts 🏆            *
- *                                                                         *
- *  หมดลุ้น 20 คน (รวม Patrawut2/Chaikrit1 ที่ต้องการ France=3rd)        */
+/* ══════════════════════════════════════════════════════════════ *
+ *  🏆  ผลสุดท้าย WC2026 — Final (20 ก.ค. 69): Spain def. Argentina  *
+ *                                                                  *
+ *  อันดับสุดท้าย:                                                  *
+ *    🥇 Spain (แชมป์)  🥈 Argentina (รอง)                         *
+ *    🥉 England (3rd)  4️⃣ France (4th)                            *
+ *                                                                  *
+ *  🏆 ผู้ชนะ pool: den1 ด้วย 329 คะแนน                           *
+ *     (Spain=แชมป์ ✓  Argentina=2nd ✓  England=3rd ✓)             *
+ *                                                                  *
+ *  อันดับ pool (top 5):                                            *
+ *    1. den1       329 pts 🏆                                      *
+ *    2. Som        321 pts                                         *
+ *    3. Direk      317 pts                                         *
+ *    4. Chaikrit1  296 pts                                         *
+ *    5. Ratapong1  289 pts                                         *
+ * ══════════════════════════════════════════════════════════════ */
 const ELIMINATED_PLAYERS = new Set([
   'Chaidet1','Chaidet2','den2','Min','Ratapong1','Ratapong2',
-  'Arsom2','Cholawit1','Cholawit2','Direk','Patrawut1','Patrawut2',
+  'Arsom1','Arsom2','Cholawit1','Cholawit2','Direk','Patrawut1','Patrawut2',
   'Permlarp1','Permlarp2','Som','Niti','Chaikrit1','Chaikrit2',
   'Chaikrit3','Ratchapruk',
 ]);
@@ -804,10 +812,17 @@ function buildAnalysisTable(players) {
     return `<div style="padding:20px;color:var(--text2);text-align:center">⏳ รอผล SF ก่อน</div>`;
   }
 
+  const scenarioMaxes = scenarios.map(s => Math.max(...players.map(p => calcTotal(p, s))));
+
   // Banner message
   let bannerHtml;
   if (championDone) {
-    bannerHtml = `<strong style="color:var(--green)">🏆 ผลสุดท้าย: ${F.champion}=แชมป์</strong> &nbsp;|&nbsp; ผู้ชนะ pool คือ...</strong>`;
+    const poolWinners = players.filter(p => calcTotal(p, scenarios[0]) === scenarioMaxes[0] && !ELIMINATED_PLAYERS.has(p.name));
+    const winnerStr = poolWinners.map(p => `<strong style="color:gold">${p.name}</strong>`).join(', ');
+    const winScore  = scenarioMaxes[0];
+    bannerHtml = `🏆 <strong style="color:var(--green)">Spain=แชมป์โลก 2026!</strong>
+      &nbsp;|&nbsp; Argentina=2nd &nbsp;|&nbsp; England=3rd &nbsp;|&nbsp; France=4th
+      &nbsp;&nbsp;🥇 <strong>ผู้ชนะ pool:</strong> ${winnerStr} — <strong style="color:var(--green)">${winScore} pts</strong>`;
   } else if (thirdDone) {
     bannerHtml = `<strong style="color:var(--gold)">✅ England=3rd, France=4th</strong> &nbsp;|&nbsp;
       <strong style="color:var(--espn)">⏳ รอชี้ชะตา: Argentina vs Spain (Final)</strong> &nbsp;|&nbsp;
@@ -816,11 +831,9 @@ function buildAnalysisTable(players) {
     bannerHtml = `<strong style="color:var(--gold)">🏆 Final: Argentina vs Spain | 🥉 3rd: England vs France</strong> &nbsp;|&nbsp; 4 scenarios`;
   }
 
-  const scenarioMaxes = scenarios.map(s => Math.max(...players.map(p => calcTotal(p, s))));
-
   const thead = `<thead><tr>
     <th class="player-col">ผู้เล่น</th>
-    <th class="num">คะแนนปัจจุบัน<br><small style="font-size:9px;font-weight:400">ก่อน Final</small></th>
+    <th class="num">${championDone?'คะแนนสุดท้าย':'คะแนนปัจจุบัน'}<br><small style="font-size:9px;font-weight:400">${championDone?'(จบแล้ว)':'ก่อน Final'}</small></th>
     ${scenarioLabels.map(lbl => `<th class="num" style="background:rgba(204,0,0,.04);min-width:120px">${lbl}</th>`).join('')}
     <th class="num" style="background:rgba(0,122,46,.06);color:var(--green)">ชนะ<br><small style="font-size:9px">/${totalScenarios}</small></th>
   </tr></thead>`;
